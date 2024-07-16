@@ -9,6 +9,7 @@ component Bar {
     in property <length> bar-height;
     in property <color> bar-color;
     in property <float> bar-value;
+    in property <bool> always-show-value: false;
 
     horizontal-stretch: 1;
 
@@ -33,7 +34,7 @@ component Bar {
         }
         return (floor(val) + 1) + "-";
     }
-    if bar-value >= 4.67: Text {
+    if bar-value >= 4.33 || always-show-value: Text {
         private property <length> fontsize: Skin.SmallFont;
         text: convert_kp_val(bar-value, fract_val);
         y: parent.height - bar-height - fontsize * 125%;
@@ -104,9 +105,9 @@ export component KpIndexBarChart {
 
             private property <int> kp_max: 9;
             for kp_value in kp_max + 1: Text {
-                private property <int> kp_scale_val: kp_max - kp_value;
-                text: kp_scale_val;
-                color: round(chart_data[chart-data-len - 1].kp) == kp_scale_val ? Skin.palette.text : Skin.palette.secondaryText;
+                private property <int> kp_axis_val: kp_max - kp_value;
+                text: kp_axis_val;
+                color: round(chart_data[chart-data-len - 1].kp) == kp_axis_val ? Skin.palette.text : Skin.palette.secondaryText;
                 font-size: Skin.MediumFont;
                 horizontal-alignment: right;
                 vertical-stretch: 1;
@@ -147,6 +148,7 @@ export component KpIndexBarChart {
                 bar-height: parent.height * (display-value - root.min) / (root.max - root.min);
                 bar-color: setbarcolor(display-value);
                 bar-value: display-value;
+                always-show-value: index == chart_data_len - 1 ? true : false;
             }
 
             Text {
