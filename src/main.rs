@@ -31,8 +31,8 @@ struct Config {
     #[envconfig(from = "MQTT_BROKER_BASE_TOPIC", default = "homeassistant/sensor")]
     pub mqtt_base_topic: String,
 
-    #[envconfig(from = "MQTT_DEVICE_NAME", default = "unknown")]
-    pub mqtt_device_name: String,
+    #[envconfig(from = "MQTT_CONTROLLER_NAME", default = "cubieboard")]
+    pub mqtt_controller_name: String,
 
     #[envconfig(from = "DEFAULT_TIMEZONE_OFFSET_H", default = "3")]
     pub timezone_offset_h: i8,
@@ -59,9 +59,10 @@ fn main() {
     let mut topic_gui_map: GuiCallbackMap = HashMap::new();
     topic_gui_map.insert(make_full_topic("htu21d", &config), update_indoor_t_rh);
     topic_gui_map.insert(make_full_topic("mhz19", &config), update_indoor_co2);
-    topic_gui_map.insert(make_full_topic("nasa_kp", &config), update_space_weather_kp);
-    topic_gui_map.insert(make_full_topic("nasa_flux", &config), update_space_weather_flux);
-    topic_gui_map.insert(make_full_topic("nasa_sw_forecast", &config), update_sw_forecast);
+    topic_gui_map.insert(make_full_topic("noaa_kp", &config), update_space_weather_kp);
+    topic_gui_map.insert(make_full_topic("noaa_kp_inst", &config), update_space_weather_kp_inst);
+    topic_gui_map.insert(make_full_topic("noaa_flux", &config), update_space_weather_flux);
+    topic_gui_map.insert(make_full_topic("noaa_sw_forecast", &config), update_sw_forecast);
 
     let topic_gui_map_arc = Arc::new(topic_gui_map);
     let topic_gui_map_arc2 = topic_gui_map_arc.clone();
@@ -107,7 +108,7 @@ fn main() {
 }
 
 fn make_full_topic(sensor_name: &str, config: &Config) -> String {
-    let full_topic = config.mqtt_base_topic.clone() + "/" + &config.mqtt_device_name + "_" + sensor_name + "/state";
+    let full_topic = config.mqtt_base_topic.clone() + "/" + &config.mqtt_controller_name + "_" + sensor_name + "/state";
     return full_topic;
 }
 
@@ -134,6 +135,7 @@ fn convert_datetime(input: &str, in_format: &str, out_format: &str, offset_hours
     return datetime.format(out_format).to_string();
 }
 
+// TODO: use ModelRC for updating chart data
 fn update_space_weather_kp(window_weak: Weak<AppWindow>, json_data: JsonValue, config: Arc<Config>) {
     window_weak.upgrade_in_event_loop(move |window| {
         if !json_data.is_array() {
@@ -143,7 +145,7 @@ fn update_space_weather_kp(window_weak: Weak<AppWindow>, json_data: JsonValue, c
         let chart_data = VecModel::default();
         for element in json_data.members() {
             if !element.is_object() {
-                println!("Format of received data element is invalid! Should be object");
+                println!("Format of received data element is invalid! Should be object of type KpIndex");
                 continue;
             }
             chart_data.push(KpIndex {
@@ -152,7 +154,32 @@ fn update_space_weather_kp(window_weak: Weak<AppWindow>, json_data: JsonValue, c
                 kp: element["kp"].as_f32().unwrap_or(0.0),
             });
         }
+
+        // save current instant KP value from the last element ("row") of KP data array
+        let current_kps_rc = window.global::<SpaceWeatherAdapter>().get_kp_index_data();
+        let current_kps = current_kps_rc.as_any().downcast_ref::<VecModel<KpIndex>>().expect("error when downcasting sw kp");
+        chart_data.push(current_kps.row_data(current_kps.row_count() - 1).unwrap_or_default());
+
         window.global::<SpaceWeatherAdapter>().set_kp_index_data(Rc::new(chart_data).into());
+    }).unwrap();
+}
+
+fn update_space_weather_kp_inst(window_weak: Weak<AppWindow>, json_data: JsonValue, config: Arc<Config>) {
+    window_weak.upgrade_in_event_loop(move |window| {
+        if !json_data.is_object() {
+            println!("Format of received data is invalid! Shouldn't be object of type KpIndex");
+            return;
+        }
+        let kp_inst_val = KpIndex {
+            hour: convert_datetime(json_data["time_tag"].as_str().unwrap_or("00:00 01-01-2024"),
+                                   "%H:%M %d-%m-%Y", "%H", config.timezone_offset_h.into()).into(),
+            kp: json_data["kp"].as_f32().unwrap_or(0.0),
+        };
+
+        // update instant KP data value in the last element ("row") of KP data array
+        let current_kps_rc = window.global::<SpaceWeatherAdapter>().get_kp_index_data();
+        let current_kps = current_kps_rc.as_any().downcast_ref::<VecModel<KpIndex>>().expect("error when downcasting sw kp");
+        current_kps.set_row_data(current_kps.row_count() - 1, kp_inst_val);
     }).unwrap();
 }
 

@@ -35,15 +35,15 @@ component StormIcon inherits TextIcon {
 }
 
 export global SpaceWeatherAdapter {
-    in property <[KpIndex]> kp_index_data: [{hour: "03", kp: 2.1},
-                                            {hour: "06", kp: 4.8},
-                                            {hour: "09", kp: 6.75},
-                                            {hour: "12", kp: 5.1},
-                                            {hour: "15", kp: 5.5},
-                                            {hour: "18", kp: 5.75},
-                                            {hour: "21", kp: 1.333},
-                                            {hour: "22", kp: 2.78},
-                                        ];
+    in-out property <[KpIndex]> kp_index_data: [{hour: "03", kp: 2.1},
+                                                {hour: "06", kp: 4.8},
+                                                {hour: "09", kp: 6.75},
+                                                {hour: "12", kp: 5.1},
+                                                {hour: "15", kp: 5.5},
+                                                {hour: "18", kp: 5.75},
+                                                {hour: "21", kp: 1.333},
+                                                {hour: "23", kp: 0.0},
+                                            ];
 
     in property <float> kp_forecast_3h : 8;
     in property <float> kp_forecast_24h : 6;
