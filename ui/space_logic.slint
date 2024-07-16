@@ -1,0 +1,113 @@
+import { Skin } from "./theme.slint";
+
+export enum StormType {
+    GeoStorm,
+    SolarRadiationStorm,
+}
+
+export enum GeoStrom {
+    G0_NoStorm,
+    G1_Minor,
+    G2_Moderate,
+    G3_Strong,
+    G4_Severe,
+    G5_Extreme
+}
+
+export enum SolarRadiationStrom {
+    S0_NoStorm,
+    S1_Minor,
+    S2_Moderate,
+    S3_Strong,
+    S4_Severe,
+    S5_Extreme
+}
+
+export global SpaceLogic {
+    public pure function kp_to_geo_storm(val: float) -> GeoStrom {
+        if (val < 5) {
+            return GeoStrom.G0-NoStorm;
+        } else if (val < 6) {
+            return GeoStrom.G1-Minor;
+        } else if (val < 7) {
+            return GeoStrom.G2-Moderate;
+        } else if (val < 8) {
+            return GeoStrom.G3-Strong;
+        } else if (val < 9) {
+            return GeoStrom.G4-Severe;
+        }
+        return GeoStrom.G5-Extreme;
+    }
+
+    public pure function geo_storm_to_color(val: GeoStrom) -> color {
+        if (val == GeoStrom.G0-NoStorm) {
+            return Skin.GeoStormColors.no-storm;
+        } else if (val ==  GeoStrom.G1-Minor) {
+            return Skin.GeoStormColors.g1-minor;
+        } else if (val == GeoStrom.G2-Moderate) {
+            return Skin.GeoStormColors.g2-moderate;
+        } else if (val == GeoStrom.G3-Strong) {
+            return Skin.GeoStormColors.g3-strong;
+        } else if (val == GeoStrom.G4-Severe) {
+            return Skin.GeoStormColors.g4-severe;
+        }
+        return Skin.GeoStormColors.g5-extreme;
+    }
+    public pure function geo_storm_to_string(val: GeoStrom) -> string {
+        if (val == GeoStrom.G0-NoStorm) {
+            return "NS";
+        } else if (val ==  GeoStrom.G1-Minor) {
+            return "G1";
+        } else if (val == GeoStrom.G2-Moderate) {
+            return "G2";
+        } else if (val == GeoStrom.G3-Strong) {
+            return "G3";
+        } else if (val == GeoStrom.G4-Severe) {
+            return "G4";
+        }
+        return "G5";
+    }
+
+    public pure function solar_radiation_to_storm_level(val: float) -> SolarRadiationStrom {
+        if (val < 10) {
+            return SolarRadiationStrom.S0-NoStorm;
+        } else if (val < 100) {
+            return SolarRadiationStrom.S1-Minor;
+        } else if (val < 1000) {
+            return SolarRadiationStrom.S2-Moderate;
+        } else if (val < 10000) {
+            return SolarRadiationStrom.S3-Strong;
+        } else if (val < 1000000) {
+            return SolarRadiationStrom.S4-Severe;
+        }
+        return SolarRadiationStrom.S5-Extreme;
+    }
+    public pure function solar_storm_to_color(val: SolarRadiationStrom) -> color {
+        if (val == SolarRadiationStrom.S0-NoStorm) {
+            return Skin.GeoStormColors.no-storm;
+        } else if (val ==  SolarRadiationStrom.S1-Minor) {
+            return Skin.GeoStormColors.g1-minor;
+        } else if (val == SolarRadiationStrom.S2-Moderate) {
+            return Skin.GeoStormColors.g2-moderate;
+        } else if (val == SolarRadiationStrom.S3-Strong) {
+            return Skin.GeoStormColors.g3-strong;
+        } else if (val == SolarRadiationStrom.S4-Severe) {
+            return Skin.GeoStormColors.g4-severe;
+        }
+        return Skin.GeoStormColors.g5-extreme;
+    }
+    public pure function solar_storm_to_string(val: SolarRadiationStrom) -> string {
+        if (val == SolarRadiationStrom.S0-NoStorm) {
+            return "NS";
+        } else if (val ==  SolarRadiationStrom.S1-Minor) {
+            return "S1";
+        } else if (val == SolarRadiationStrom.S2-Moderate) {
+            return "S2";
+        } else if (val == SolarRadiationStrom.S3-Strong) {
+            return "S3";
+        } else if (val == SolarRadiationStrom.S4-Severe) {
+            return "S4";
+        }
+        return "S5";
+    }
+}

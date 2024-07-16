@@ -1,0 +1,94 @@
+import { Skin } from "theme.slint";
+import { SpaceWeatherDataWidget, SpaceWeatherAdapter, KpIndex } from "space_weather_widget.slint";
+import { IndoorDataWidget, IndoorAdapter } from "indoor_widget.slint";
+import { AnimationTestBox } from "animation_test.slint";
+
+export { IndoorAdapter, SpaceWeatherAdapter }
+
+
+component BoxBase inherits Rectangle {
+    background: Skin.palette.boxBgnd;
+    border-radius: 15px;
+}
+
+component TitledBox inherits BoxBase {
+    in property <string> title;
+
+    VerticalLayout {
+        if (root.title != "") : Text {
+            text <=> root.title;
+            font-size: Skin.TitleFont;
+            font-weight: 700;
+        }
+        spacing: 10px;
+        padding: 15px;
+
+        @children
+    }
+}
+
+component SpaceWeatherWidget inherits TitledBox {
+    title: "Space weather";
+
+    SpaceWeatherDataWidget { }
+}
+
+component IndoorWidget inherits TitledBox {
+    title: "Indoor";
+
+    IndoorDataWidget { }
+}
+
+component Clouds inherits TitledBox {
+    title: "Clouds and precipitation";
+    Text {
+        text: "To be done ... work in process";
+        horizontal-alignment: center;
+        font-size: Skin.LargeFont;
+    }
+    AnimationTestBox {}
+}
+
+
+component MainContent {
+    min-width: 600px;
+    min-height: 1024px;
+    max-width: 600px;
+    max-height: 1024px;
+    preferred-width: 600px;
+    preferred-height: 1024px;
+
+    Rectangle {
+        background: Skin.palette.mainContent;
+    }
+
+    GridLayout {
+        spacing: 2px;
+
+        SpaceWeatherWidget {
+            row: 0; col: 0;
+        }
+
+        Clouds {
+            row: 1;
+        }
+        IndoorWidget {
+            row: 2;
+        }
+    }
+}
+
+export component AppWindow inherits Window {
+    always-on-top: true;
+    background: #7c7c7c;
+    min-width: 600px;
+    min-height: 1024px;
+    max-width: 600px;
+    max-height: 1024px;
+    preferred-width: 600px;
+    preferred-height: 1024px;
+
+    no-frame: true;
+
+    MainContent {}
+}

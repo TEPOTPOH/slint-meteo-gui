@@ -1,0 +1,16 @@
+[package]
+name = "slint-gui"
+version = "0.1.0"
+authors = ["TEPO <tepotpoh@gmail.com>"]
+edition = "2018"
+build = "build.rs"
+
+[dependencies]
+slint = { version = "1.4", default-features = false, features = ["std", "compat-1-2", "backend-winit", "renderer-femtovg"] }
+rumqttc = "0.23.0"
+json = "0.12.4"
+envconfig = "0.10.0"
+chrono = "0.4"
+
+[build-dependencies]
+slint-build = "1.4"

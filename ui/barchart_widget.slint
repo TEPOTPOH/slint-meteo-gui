@@ -1,0 +1,170 @@
+// Based on example source code
+//  Copyright © SixtyFPS GmbH <info@slint.dev>
+//  SPDX-License-Identifier: MIT
+
+import { Skin } from "theme.slint";
+import { SpaceLogic } from "space_logic.slint";
+
+component Bar {
+    in property <length> bar-height;
+    in property <color> bar-color;
+    in property <float> bar-value;
+
+    horizontal-stretch: 1;
+
+    Rectangle {
+        border-radius: 2px;
+        y: parent.height - self.height;
+        height: bar-height;
+        clip: true;
+
+        Rectangle {
+            height: root.height;
+            y: parent.height - self.height;
+            background: bar-color;
+        }
+    }
+    private property <float> fract_val: bar-value - floor(bar-value);
+    protected pure function convert_kp_val(val: float, fract_val: float) -> string {
+        if (fract_val < 0.33) {
+            return floor(val);
+        } else if (fract_val < 0.67) {
+            return floor(val) + "+";
+        }
+        return (floor(val) + 1) + "-";
+    }
+    if bar-value >= 4.67: Text {
+        private property <length> fontsize: Skin.SmallFont;
+        text: convert_kp_val(bar-value, fract_val);
+        y: parent.height - bar-height - fontsize * 125%;
+        font-size: fontsize;
+    }
+}
+
+component VerticalAxis inherits Path {
+    in-out property<float> arrow_size: 10;
+
+    viewbox-width: 9;
+    viewbox-height: 105;
+
+    fill: black;
+
+    private property <float> w_middle: root.viewbox-width/2;
+
+    MoveTo {
+        y: root.viewbox-height;
+        x: w_middle;
+    }
+
+    LineTo {
+        y: 0;
+        x: w_middle;
+    }
+
+    MoveTo {
+        y: 0;
+        x: w_middle;
+    }
+
+    LineTo {
+        y: arrow-size * root.viewbox-height/100;
+        x: w_middle - arrow-size * 2 * root.viewbox-width/100;
+    }
+
+    LineTo {
+        y: arrow-size * root.viewbox-height/100;
+        x: w_middle + arrow-size * 2 * root.viewbox-width/100;
+    }
+}
+
+export struct KpIndex {
+    hour: string,
+    kp: float,
+}
+
+export component KpIndexBarChart {
+    in property <[KpIndex]> chart_data;
+    in property <float> min;
+    in property <float> max;
+    in property <bool> active : true;
+
+    private property <int> chart_data_len: chart_data.length;
+
+    protected pure function setbarcolor(val: float) -> color {
+        return SpaceLogic.geo_storm_to_color(SpaceLogic.kp_to_geo_storm(val));
+    }
+
+    hl := HorizontalLayout {
+        padding-right: 10px;
+        spacing: 1px;
+
+        verticalScale := VerticalLayout {
+            width: 4%;
+            spacing: 4px;
+
+            private property <int> kp_max: 9;
+            for kp_value in kp_max + 1: Text {
+                private property <int> kp_scale_val: kp_max - kp_value;
+                text: kp_scale_val;
+                color: round(chart_data[chart-data-len - 1].kp) == kp_scale_val ? Skin.palette.text : Skin.palette.secondaryText;
+                font-size: Skin.MediumFont;
+                horizontal-alignment: right;
+                vertical-stretch: 1;
+            }
+            Rectangle {
+                vertical-stretch: 1;
+            }
+            Rectangle {
+                vertical-stretch: 1;
+            }
+            Rectangle {
+                vertical-stretch: 1;
+            }
+            // max-width: 15px;
+        }
+
+        vx := VerticalAxis {
+            y: verticalScale.y - verticalScale.height/20;
+            width: 6%;
+            fill: Skin.palette.text;
+        }
+
+        for value[index] in chart_data : VerticalLayout {
+            spacing: 3px;
+            private property <float> display-value;
+
+            states [
+                active when active : {
+                    display-value: value.kp;
+
+                    in {
+                        animate display-value { duration: 500ms; easing: ease-in-out; }
+                    }
+                }
+            ]
+
+            Bar {
+                bar-height: parent.height * (display-value - root.min) / (root.max - root.min);
+                bar-color: setbarcolor(display-value);
+                bar-value: display-value;
+            }
+
+            Text {
+                text: value.hour;
+                horizontal-alignment: right;
+                font-size: Skin.MediumFont;
+                color: index == chart_data_len -1 ? Skin.palette.text: Skin.palette.secondaryText;
+                x: + 10px;
+            }
+        }
+    }
+    Text {
+        // TODO: current add value
+        // text: "Kp index: " + round(chart_data[chart_data_len - 1]);
+        text: "Kp index";
+        x: vx.x + vx.width * 1.5;
+        y: vx.y + vx.height/25;
+        font-size: Skin.LargeFont;
+        color: Skin.palette.text;
+    }
+}

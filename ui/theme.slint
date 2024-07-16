@@ -1,0 +1,76 @@
+import { StyleMetrics } from "std-widgets.slint";
+
+struct Palette  {
+    mainContent : brush,
+    boxBgnd : brush,
+    widgetBgnd: brush,
+    text : brush,
+    secondaryText : brush,
+    icon : brush,
+    gaugeCursor : brush,
+    gaugeCursor2 : brush
+}
+
+struct GaugeZonePalette {
+    red: brush,
+    green: brush,
+    orange: brush,
+    blue: brush
+}
+
+struct GeoStormPalette {
+    no_storm: brush,
+    g1_minor: brush,
+    g2_moderate: brush,
+    g3_strong: brush,
+    g4_severe: brush,
+    g5_extreme: brush
+}
+
+export global Skin  {
+    in property <bool> day: !StyleMetrics.dark-color-scheme;
+    out property <Palette> palette : root.day ? {
+        mainContent: #d7d7d7,
+        boxBgnd :   #ffffff,
+        widgetBgnd: #f2f2f2,
+        text : #000,
+        secondaryText: #7d7d7d,
+        icon: #000,
+        gaugeCursor: #000000,
+        gaugeCursor2: #74747485
+
+    } : {
+        mainContent: #2e2e2e,
+        boxBgnd : #000000,
+        widgetBgnd: #272727,
+        text : #ffffff,
+        secondaryText: #959595,
+        icon: #ffffff,
+        gaugeCursor: #ffffff,
+        gaugeCursor2: #9c9c9c85
+    };
+
+    // From Skin::initHints in Skin.cpp
+    out property <length> DefaultFont: 12px;
+    out property <length> TinyFont: 10px;
+    out property <length> SmallFont: 14px;
+    out property <length> MediumFont: 17px;
+    out property <length> LargeFont: 23px;
+    out property <length> HugeFont: 27px; // (also, bold)
+    out property <length> TitleFont: 15px; // (also, bold)
+
+    out property <GaugeZonePalette> GaugeColor: {
+        red: #d43232,
+        green: #1dab3c,
+        orange: #eeb539,
+        blue: #3e41e2
+    };
+    out property <GeoStormPalette> GeoStormColors: {
+        no_storm: #1dab3c,
+        g1_minor: #f6eb14,
+        g2_moderate: #ffc800,
+        g3_strong: #ff9600,
+        g4_severe: #ff0000,
+        g5_extreme: #c80000
+    };
+}

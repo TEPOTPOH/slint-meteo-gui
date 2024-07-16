@@ -1,0 +1,134 @@
+import { Skin } from "./theme.slint";
+
+
+component RG_FillBakground inherits Path {
+    in property <float> thickness;
+    in property <float> inner-radius;
+    in property <float> fill_from;
+    in property <float> fill_to;
+    in property <color> fill_color: #aaaaaa40;
+    in property <float> start : -0.25;
+    in property <float> end : 0.25;
+
+    fill: fill_color;
+
+    viewbox-width: 100;
+    viewbox-height: 50;
+
+    private property <float> position_from: root.start + (root.end - root.start) * root.fill_from;
+    private property <float> position_to: root.start + (root.end - root.start) * root.fill_to;
+
+    MoveTo {
+        y: 50 - 50 * cos(-position_from * 360deg);
+        x: 50 - 50 * sin(-position_from * 360deg);
+    }
+
+    LineTo {
+        y: 50 - root.inner-radius * cos(-position_from * 360deg);
+        x: 50 - root.inner-radius * sin(-position_from * 360deg);
+    }
+
+    ArcTo {
+        radius-x: root.inner-radius;
+        radius-y: root.inner-radius;
+        y: 50 - root.inner-radius*cos(-position_to * 360deg);
+        x: 50 - root.inner-radius*sin(-position_to * 360deg);
+        sweep: true;
+    }
+
+    LineTo {
+        y: 50 - 50*cos(-position_to * 360deg);
+        x: 50 - 50*sin(-position_to * 360deg);
+    }
+
+    ArcTo {
+        radius-x: 50;
+        radius-y: 50;
+        y: 50 - 50 * cos(-position_from * 360deg);
+        x: 50 - 50 * sin(-position_from * 360deg);
+        sweep: false;
+    }
+}
+
+component RG_DrawCursor inherits Path {
+    in property <float> thickness;
+    in property <float> inner-radius;
+    in property <float> progress;
+    in property <float> start : -0.25;
+    in property <float> end : 0.25;
+    in property <float> cursor_extra_len: (50 - root.inner-radius)/2;
+
+    private property <float> position: root.start + (root.end - root.start) * root.progress;
+    private property <float> cursor_base: 0.02; 
+    private property <float> position1: root.start + (root.end - root.start) * (root.progress + cursor_base);
+    private property <float> position2: root.start + (root.end - root.start) * (root.progress - cursor_base);
+
+    fill: @linear-gradient(asin(position), Skin.palette.gaugeCursor2, Skin.palette.gaugeCursor);
+
+    viewbox-width: 100;
+    viewbox-height: 50;
+
+    MoveTo {
+        y: 50 - 50 * cos(-position * 360deg);
+        x: 50 - 50 * sin(-position * 360deg);
+    }
+
+    LineTo {
+        y: 50 - (root.inner-radius - cursor_extra_len) * cos(-position1 * 360deg);
+        x: 50 - (root.inner-radius - cursor_extra_len) * sin(-position1 * 360deg);
+    }
+
+    MoveTo {
+        y: 50 - 50 * cos(-position * 360deg);
+        x: 50 - 50 * sin(-position * 360deg);
+    }
+
+    LineTo {
+        y: 50 - (root.inner-radius - cursor_extra_len) * cos(-position2 * 360deg);
+        x: 50 - (root.inner-radius - cursor_extra_len) * sin(-position2 * 360deg);
+    }
+}
+
+export component RoundGaugeWidget inherits Rectangle {
+    in property <[{from: float, to: float, color: brush}]> color_zones;
+    in property <float> progress;
+    in property <float> thickness: 15;
+    in property <float> inner-radius: 50 - root.thickness;
+    in property <float> value_max;
+
+    public pure function inbound(x: float) -> float {
+        return Math.min(root.value_max, Math.max(0, x));
+    }
+
+    RG_FillBakground {
+        width: 100%;
+        height: 100%;
+        thickness: root.thickness;
+        inner-radius: root.inner-radius;
+        fill_from: 0;
+        fill_to: 1;
+        fill_color: #d9d9d9;
+    }
+
+    for zone in color_zones: RG_FillBakground {
+        width: 100%;
+        height: 100%;
+        thickness: root.thickness;
+        inner-radius: root.inner-radius;
+        fill_from: inbound(zone.from)/root.value_max;
+        fill_to: inbound(zone.to)/root.value_max;
+        fill_color: zone.color;
+    }
+
+    p := RG_DrawCursor {
+        width: 100%;
+        height: 100%;
+        thickness: root.thickness;
+        inner-radius: root.inner-radius;
+        progress: inbound(root.progress)/root.value_max;
+        animate progress {
+            duration: 500ms;
+            easing: ease-out-quart;
+        }
+    }
+}
