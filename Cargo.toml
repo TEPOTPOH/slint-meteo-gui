@@ -13,6 +13,11 @@ rumqttc = "0.23.0"
 json = "0.12.4"
 envconfig = "0.10.0"
 chrono = "0.4"
+# for gstreamer
+anyhow = { version = "1.0" }
+gst = {package = "gstreamer", version = "0.21.3"}
+gst-video = {package = "gstreamer-video", version = "0.21.2" }
+gst-app = {package = "gstreamer-app", version = "0.21.2" }
 
 [build-dependencies]
 slint-build = "1.6"

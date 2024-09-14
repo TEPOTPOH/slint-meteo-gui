@@ -75,4 +75,9 @@ impl WindowUpdater {
             current_kps.set_row_data(current_kps.row_count() - 1, value);
         }).unwrap();
     }
+    pub fn update_video_frame(&self, data: slint::SharedPixelBuffer<slint::Rgb8Pixel>) {
+        self.window_weak.upgrade_in_event_loop(move |window| {
+            window.global::<VideoAdapter>().set_video_frame(slint::Image::from_rgb8(data));
+        }).unwrap();
+    }
 }

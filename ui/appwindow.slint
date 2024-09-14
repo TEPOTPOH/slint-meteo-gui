@@ -1,9 +1,9 @@
 import { Skin } from "theme.slint";
 import { SpaceWeatherDataWidget, SpaceWeatherAdapter, KpIndex } from "space_weather_widget.slint";
 import { IndoorDataWidget, IndoorAdapter } from "indoor_widget.slint";
-import { AnimationTestBox } from "animation_test.slint";
+import { VideoWidget, VideoAdapter } from "video_widget.slint";
 
-export { IndoorAdapter, SpaceWeatherAdapter }
+export { IndoorAdapter, SpaceWeatherAdapter, VideoAdapter }
 
 
 component BoxBase inherits Rectangle {
@@ -39,16 +39,11 @@ component IndoorWidget inherits TitledBox {
     IndoorDataWidget { }
 }
 
-component Clouds inherits TitledBox {
-    title: "Clouds and precipitation";
-    Text {
-        text: "To be done ... work in process";
-        horizontal-alignment: center;
-        font-size: Skin.LargeFont;
-    }
-    AnimationTestBox {}
-}
+component OutdoorVideo inherits TitledBox {
+    title: "Outdoor live video";
 
+    VideoWidget {}
+}
 
 component MainContent {
     min-width: 600px;
@@ -69,7 +64,7 @@ component MainContent {
             row: 0; col: 0;
         }
 
-        Clouds {
+        OutdoorVideo {
             row: 1;
         }
         IndoorWidget {

@@ -9,6 +9,7 @@ use connector::MQTTConnector;
 pub mod ui;
 pub mod model;
 pub mod connector;
+pub mod video;
 
 #[derive(Debug)]
 #[derive(Envconfig)]
@@ -71,6 +72,11 @@ fn main() {
     for topic in meteo_model_ref.data_view_map.keys() {
         mqtt_connector.subscribe_client(topic);
     }
+
+    // Video
+    video::init_pipeline("https://s2.moidom-stream.ru/s/public/0000091581.m3u8",
+                        500,
+                        WindowUpdater::new(ui.as_weak()));
 
     ui.run().unwrap();
 }
