@@ -37,6 +37,9 @@ pub struct Config {
 
     #[envconfig(from = "RB_MIN_PROBABILITY_THRH_PRCNT", default = "50")]
     pub rb_min_prob_thrh: u8,
+
+    #[envconfig(from = "VIDEO_URL", default = "https://s2.moidom-stream.ru/s/public/0000091581.m3u8")]
+    pub video_url: String,
 }
 
 fn main() {
@@ -74,8 +77,8 @@ fn main() {
     }
 
     // Video
-    video::init_pipeline("https://s2.moidom-stream.ru/s/public/0000091581.m3u8",
-                        500,
+    video::init_pipeline(&config_ref.clone().video_url,
+                        540,
                         WindowUpdater::new(ui.as_weak()));
 
     ui.run().unwrap();

@@ -31,14 +31,14 @@ fn try_gstreamer_video_frame_to_pixel_buffer(
     }
 }
 
-pub fn init_pipeline(video_uri: &'static str, width: u32, updater: WindowUpdater) {
+pub fn init_pipeline(video_uri: &String, width: u32, updater: WindowUpdater) {
     println!("init video pipline ...");
     gst::init().unwrap();
 
     let pipeline = gst::Pipeline::with_name("test-pipeline");
 
     let uridecodebin = gst::ElementFactory::make("uridecodebin")
-        .property_from_str("uri", video_uri)
+        .property_from_str("uri", &video_uri)
         .build()
         .expect("Could not create gst element.");
 

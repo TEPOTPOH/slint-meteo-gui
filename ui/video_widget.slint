@@ -8,12 +8,20 @@ export global VideoAdapter {
     in property <bool> playing;
 }
 
-export component VideoWidget inherits Rectangle {
+component VideoWidgetBase inherits VerticalLayout {
+    padding: 1px;
+    spacing: 1px;
+
+    Rectangle {
+        background: #000000;
+        border-radius: 15px;
+        @children
+    }
+}
+
+export component VideoWidget inherits VideoWidgetBase {
     in property <image> video-frame <=> VideoAdapter.video-frame;
     in property <bool> playing <=> VideoAdapter.playing;
-    
-    preferred-height: 500px*(9/16);
-    background: #000000;
 
     pure callback toggle-pause-play();
 
@@ -37,18 +45,19 @@ export component VideoWidget inherits Rectangle {
         }
     ]
 
-    VerticalBox {
-        Image {
+    Rectangle {
+        Image {           
+            image-fit: ImageFit.preserve;
             source: video-frame;
         }
     }
 
     area := TouchArea {
         width: 50%;
-        height: self.preferred-height;
+        height: 50%;
         y: root.height - self.height - 40px;
         controls := Rectangle {
-            border-radius: 4px;
+            border-radius: 8px;
             background: Palette.color-scheme == ColorScheme.dark ? #3737378c : #ffffff82;
 
             Image {

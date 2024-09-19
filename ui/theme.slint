@@ -1,6 +1,6 @@
-import { StyleMetrics } from "std-widgets.slint";
+import { Palette } from "std-widgets.slint";
 
-struct Palette  {
+struct MainPalette  {
     mainContent : brush,
     boxBgnd : brush,
     widgetBgnd: brush,
@@ -28,8 +28,8 @@ struct GeoStormPalette {
 }
 
 export global Skin  {
-    in property <bool> day: !StyleMetrics.dark-color-scheme;
-    out property <Palette> palette : root.day ? {
+    in property <bool> day: !(Palette.color-scheme == ColorScheme.dark);
+    out property <MainPalette> palette : root.day ? {
         mainContent: #d7d7d7,
         boxBgnd :   #ffffff,
         widgetBgnd: #f2f2f2,
