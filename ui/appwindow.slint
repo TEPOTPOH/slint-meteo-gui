@@ -2,6 +2,7 @@ import { Skin } from "theme.slint";
 import { SpaceWeatherDataWidget, SpaceWeatherAdapter, KpIndex } from "space_weather_widget.slint";
 import { IndoorDataWidget, IndoorAdapter } from "indoor_widget.slint";
 import { VideoWidget, VideoAdapter } from "video_widget.slint";
+import { AboutSlint, Button, HorizontalBox, VerticalBox } from "std-widgets.slint";
 
 export { IndoorAdapter, SpaceWeatherAdapter, VideoAdapter }
 
@@ -45,6 +46,20 @@ component OutdoorVideo inherits TitledBox {
     VideoWidget {}
 }
 
+component AboutWidget inherits PopupWindow {
+    BoxBase {
+        HorizontalBox {
+            alignment: center;
+            y: 7px;
+            horizontal-stretch: 1;
+            VerticalBox {
+                alignment: center;
+                AboutSlint { }
+            }
+        }
+    }
+}
+
 component MainContent {
     min-width: 600px;
     min-height: 1024px;
@@ -70,6 +85,19 @@ component MainContent {
         IndoorWidget {
             row: 2;
         }
+    }
+
+    aboutwidget := AboutWidget {
+        width: parent.preferred-width;
+        height: parent.preferred-height/3;
+    }
+   
+    Button {
+        y: 7px;
+        x: root.preferred-width - 120px;
+        text: "About";
+        icon: @image-url("images/slint-logo-small-light.svg");
+        clicked => { aboutwidget.show(); }
     }
 }
 
