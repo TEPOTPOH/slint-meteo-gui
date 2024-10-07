@@ -38,8 +38,12 @@ pub struct Config {
     #[envconfig(from = "RB_MIN_PROBABILITY_THRH_PRCNT", default = "50")]
     pub rb_min_prob_thrh: u8,
 
-    #[envconfig(from = "VIDEO_URL", default = "https://s2.moidom-stream.ru/s/public/0000091581.m3u8")]
+    #[envconfig(from = "VIDEO_URL",
+        default = "https://zetcast-gb.b-cdn.net/cf_burradale/BurradaleABR/burradale/stream_720p/chunks.m3u8")]
     pub video_url: String,
+
+    #[envconfig(from = "VIDEO_MAX_RATE", default = "10")]
+    pub video_max_rate: u8,
 }
 
 fn main() {
@@ -77,8 +81,11 @@ fn main() {
     }
 
     // Video
+    // TODO: get video_frame_width from slint
+    let video_frame_width = 540;
     video::init_pipeline(&config_ref.clone().video_url,
-                        540,
+                        video_frame_width,
+                        config_ref.clone().video_max_rate,
                         WindowUpdater::new(ui.as_weak()));
 
     ui.run().unwrap();

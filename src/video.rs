@@ -31,7 +31,7 @@ fn try_gstreamer_video_frame_to_pixel_buffer(
     }
 }
 
-pub fn init_pipeline(video_uri: &String, width: u32, updater: WindowUpdater) {
+pub fn init_pipeline(video_uri: &String, width: u32, max_rate: u8, updater: WindowUpdater) {
     println!("init video pipline ...");
     gst::init().unwrap();
 
@@ -51,7 +51,7 @@ pub fn init_pipeline(video_uri: &String, width: u32, updater: WindowUpdater) {
         .expect("Could not create gst element.");
 
     let videorate = gst::ElementFactory::make("videorate")
-        .property_from_str("max-rate", "5")
+        .property_from_str("max-rate", max_rate.to_string().as_str())
         .build()
         .expect("Could not create gst element.");
 
@@ -77,7 +77,15 @@ pub fn init_pipeline(video_uri: &String, width: u32, updater: WindowUpdater) {
 
     let sink_pad = videorate.static_pad("sink").unwrap();
     uridecodebin.connect_pad_added(move |_, src_pad| {
-        src_pad.link(&sink_pad).expect("Can't link videorate and uridecodebin.");
+        // get pad info
+        let pad_caps = src_pad.current_caps().unwrap();
+        let pad_struct = pad_caps.structure(0).unwrap();
+        let pad_type = pad_struct.name();
+    
+        // skip not video pad
+        if pad_type.starts_with("video/") {
+            src_pad.link(&sink_pad).expect("Can't link uridecodebin with videorate!");
+        }
     });
     gst::Element::link_many([&videorate, &videoconvert, &videoscale, &appsink.upcast_ref()])
         .expect("Many elements could not be linked.");
