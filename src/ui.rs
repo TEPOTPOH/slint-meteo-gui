@@ -80,4 +80,23 @@ impl WindowUpdater {
             window.global::<VideoAdapter>().set_video_frame(slint::Image::from_rgb8(data));
         }).unwrap();
     }
+    // History graphs
+    pub fn update_indoor_history_t(&self, data: Vec<i32>) {
+        self.window_weak.upgrade_in_event_loop(move |window| {
+            let chart_data = VecModel::from(data);
+            window.global::<IndoorAdapter>().set_history_temp(Rc::new(chart_data).into());
+        }).unwrap();
+    }
+    pub fn update_indoor_history_rh(&self, data: Vec<i32>) {
+        self.window_weak.upgrade_in_event_loop(move |window| {
+            let chart_data = VecModel::from(data);
+            window.global::<IndoorAdapter>().set_history_rh(Rc::new(chart_data).into());
+        }).unwrap();
+    }
+    pub fn update_indoor_history_co2(&self, data: Vec<i32>) {
+        self.window_weak.upgrade_in_event_loop(move |window| {
+            let chart_data = VecModel::from(data);
+            window.global::<IndoorAdapter>().set_history_co2(Rc::new(chart_data).into());
+        }).unwrap();
+    }
 }

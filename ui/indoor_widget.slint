@@ -1,17 +1,25 @@
 import { Skin } from "./theme.slint";
 import { RoundGaugeWidget } from "roundgauge_widget.slint";
-
+import { DailyChart } from "daygraph_widget.slint";
 
 export global IndoorAdapter {
     in property <int> current_temp: 5;
     in property <int> current_rh: 90;
     in property <int> current_co2: 3000;
+
+    in property <[int]> history_temp: [];
+    in property <[int]> history_rh: [];
+    in property <[int]> history_co2: [];
 }
 
 export component IndoorDataWidget inherits HorizontalLayout {
     in property current-temp <=> IndoorAdapter.current_temp;
     in property current-rh <=> IndoorAdapter.current_rh;
     in property current-co2 <=> IndoorAdapter.current_co2;
+
+    in property history-temp <=> IndoorAdapter.history_temp;
+    in property history-rh <=> IndoorAdapter.history_rh;
+    in property history-co2 <=> IndoorAdapter.history_co2;
 
     spacing: 10px;
 
@@ -20,6 +28,7 @@ export component IndoorDataWidget inherits HorizontalLayout {
           value: current-temp,
           unit: "°C",
           value_max: 50,
+          history: history-temp,
           icon: @image-url("images/indoor-temperature.svg"),
           zones: [
             { from: 0, to: 18, color: Skin.GaugeColor.blue },
@@ -32,6 +41,7 @@ export component IndoorDataWidget inherits HorizontalLayout {
           value: current-rh,
           unit: "%",
           value_max: 100,
+          history: history-rh,
           icon: @image-url("images/humidity.svg"),
           zones: [
             { from: 0, to: 40, color: Skin.GaugeColor.red },
@@ -43,6 +53,7 @@ export component IndoorDataWidget inherits HorizontalLayout {
           value: current-co2,
           unit: "ppm",
           value_max: 2000,
+          history: history-co2,
           icon: @image-url(""),
           zones: [
             { from: 400, to: 650, color: Skin.GaugeColor.green },
@@ -50,91 +61,101 @@ export component IndoorDataWidget inherits HorizontalLayout {
             { from: 1000, to: 2000, color: Skin.GaugeColor.red },
           ],
         },
-    ] : Rectangle {
-        horizontal-stretch: 1;
-        // min-width: 150px;
-        // max-width: 600px/3;
-        preferred-width: 600px/3;
-        border-radius: 12px;
-        background: Skin.palette.widgetBgnd;
-
-        VerticalLayout {
-            padding-top: 10px;
+    ] : VerticalLayout {
+            preferred-width: 600px/3;
             horizontal-stretch: 1;
-            // min-width: 150px;
+            spacing: 5px;
 
-            Text {
-                font-size: Skin.LargeFont;
-                text: item.string;
-                vertical-alignment: center;
-                horizontal-alignment: center;
-            }
-
-            pc := RoundGaugeWidget {
-                vertical-stretch: 1;
-                color_zones: item.zones;
-                progress: item.value;
-                value_max: item.value_max;
+            // label with gauge
+            Rectangle {
+                vertical-stretch: 5;
+                horizontal-stretch: 1;
+                border-radius: 12px;
+                background: Skin.palette.widgetBgnd;
 
                 VerticalLayout {
+                    padding-top: 5px;
+                    padding-bottom: 20px;
                     spacing: 0px;
-                    Rectangle {
-                        vertical-stretch: 10;
-                    }
-                    Rectangle {
-                        img := Image {
-                            source: item.icon;
-                            height: root.width/3/5; // TODO: make it more reliable
-                            colorize: Skin.palette.icon;
-                        }
-                        min-height: img.height;
-                    }
-                    value_text := Text {
-                        vertical-alignment: center;
-                        horizontal-alignment: center;
-                        text: (item.unit != "°C" ? ""
-                            : item.value > 0 ? "+" : "-") + item.value;
+
+                    Text {
                         font-size: Skin.LargeFont;
-                        vertical-stretch: 1;
+                        text: item.string;
+                        vertical-alignment: top;
+                        horizontal-alignment: center;
                     }
-                }
-                Text {
-                    y: value_text.y + value_text.height*5/6;
-                    text: item.unit;
-                    font-size: Skin.MediumFont;
-                    horizontal-alignment: center;
-                    color: Skin.palette.secondaryText;
-                }
 
-                HorizontalLayout {
-                    y: root.y + 18px;
-                    max-height: 35px;
-                    Text {
-                        text: 0;
-                        font-size: Skin.MediumFont;
-                        horizontal-alignment: left;
-                        vertical-alignment: center;
-                        color: Skin.palette.secondaryText;
-                    }
-                    Text {
-                        text: item.value-max;
-                        font-size: Skin.MediumFont;
-                        horizontal-alignment: right;
-                        vertical-alignment: center;
-                        color: Skin.palette.secondaryText;
-                    }
-                }
-            }
+                    pc := RoundGaugeWidget {
+                        color_zones: item.zones;
+                        progress: item.value;
+                        value_max: item.value_max;
 
-            // TODO: daily chart widget
-            Rectangle {
-                vertical-stretch: 1;
-                min-height: pc.min-height;
-                // max-height: 150px;
-                // border-width: 1px;
-                // border-color: #000000;
-                // height: 40%;
+                        VerticalLayout {
+                            padding: 0px;
+                            spacing: 0px;
+                            Rectangle {
+                                vertical-stretch: 10;
+                            }
+                            Rectangle {
+                                img := Image {
+                                    source: item.icon;
+                                    height: root.width/3/5; // TODO: make it more reliable
+                                    colorize: Skin.palette.icon;
+                                }
+                                min-height: img.height;
+                                vertical-stretch: 0;
+                            }
+                            value_text := Text {
+                                vertical-alignment: bottom;
+                                horizontal-alignment: center;
+                                text: (item.unit != "°C" ? ""
+                                    : item.value > 0 ? "+" : "-") + item.value;
+                                font-size: Skin.LargeFont;
+                                vertical-stretch: 1;
+                            }
+                        }
+                        Text {
+                            y: value_text.y + value_text.height*5/6;
+                            text: item.unit;
+                            font-size: Skin.MediumFont;
+                            horizontal-alignment: center;
+                            color: Skin.palette.secondaryText;
+                        }
+
+                        HorizontalLayout {
+                            y: root.y + 18px;
+                            max-height: 35px;
+                            Text {
+                                text: 0;
+                                font-size: Skin.MediumFont;
+                                horizontal-alignment: left;
+                                vertical-alignment: center;
+                                color: Skin.palette.secondaryText;
+                            }
+                            Text {
+                                text: item.value-max;
+                                font-size: Skin.MediumFont;
+                                horizontal-alignment: right;
+                                vertical-alignment: center;
+                                color: Skin.palette.secondaryText;
+                            }
+                        }
+                    }   // RoundGaugeWidget
+                }   // layout
+            }   // Rectangle
+
+            // daily chart widget
+            DailyChart {
+                vertical-stretch: 4;
+                padding: 10px;
+                border-radius: 10px;
+
+                chart_data: item.history;
+                value_min: 0;
+                value_max: item.value_max;
+                unit: item.unit;
+
+                background: Skin.palette.widgetBgnd;
             }
         }
-    }
 }

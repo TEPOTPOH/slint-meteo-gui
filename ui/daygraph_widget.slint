@@ -1,0 +1,93 @@
+
+import { Skin } from "theme.slint";
+import { SpaceLogic } from "space_logic.slint";
+
+
+export component HistoryGraph inherits Rectangle {
+    in property <[int]> chart_data;
+    in property <float> value_min;
+    in property <float> value_max;
+
+    private property <int> chart_data_len: chart_data.length;
+    private property <float> dx: (self.width / 1px)/chart_data.length;
+    private property <float> dy: (self.height / 1px)/(value_max - value_min);
+
+    for value[index] in chart_data : Path {
+        private property <int> prev-index: index == 0 ? 0 : index - 1;
+        private property <int> prev-value: chart_data[prev-index];
+
+        viewbox-width: dx;  // - 1
+        viewbox-height: parent.height/1px;
+
+        x: (dx * index) * 1px;
+        width: dx * 1px;
+        
+        y: parent.height - 6px;
+        height: parent.height - 4px;
+
+        stroke: blue;
+        stroke-width: 1px;
+
+        MoveTo {
+            x: 0;
+            y: -dy * prev-value;
+        }
+        LineTo {
+            x: dx + 1;
+            y: -dy * value;
+        }
+    }
+}
+
+export component DailyChart inherits Rectangle {
+    in property <[int]> chart_data;
+    in property <float> value_min;
+    in property <float> value_max;
+    in property <string> unit;
+
+    private property <int> current_val: chart_data[chart_data.length - 1];
+
+    HorizontalLayout {
+        HistoryGraph {
+            chart_data: chart_data;
+            value_min: value_min;
+            value_max: value_max;
+        }
+        VerticalLayout {
+            padding: 3px;
+
+            Text {
+                vertical-stretch: 1;
+                horizontal-alignment: right;
+                vertical-alignment: top;
+                text: value_max;
+                font-size: Skin.SmallFont;
+                color: Skin.palette.secondaryText;
+            }
+            Text {
+                vertical-stretch: 0;
+                horizontal-alignment: right;
+                vertical-alignment: center;
+                text: current_val;
+                font-size: Skin.SmallFont;
+                color: Skin.palette.secondaryText;
+            }
+            Text {
+                vertical-stretch: 0;
+                horizontal-alignment: right;
+                vertical-alignment: center;
+                text: unit;
+                font-size: Skin.SmallFont;
+                color: Skin.palette.secondaryText;
+            }
+            Text {
+                vertical-stretch: 1;
+                horizontal-alignment: right;
+                vertical-alignment: bottom;
+                text: value_min;
+                font-size: Skin.SmallFont;
+                color: Skin.palette.secondaryText;
+            }
+        }
+    }
+}

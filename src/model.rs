@@ -4,23 +4,25 @@ use chrono::{DateTime, NaiveDateTime, Timelike, Utc};
 use crate::ui::{WindowUpdater, KpIndexUI};
 use crate::Config;
 use std::collections::HashMap;
+use crate::database::DataBase;
 
 pub type DataViewMapKeyType = String;
-pub type DataViewMapValueType = fn(&Model, WindowUpdater, JsonValue) -> ();
+pub type DataViewMapValueType = fn(&mut Model, WindowUpdater, JsonValue) -> ();
 pub type DataViewMap = HashMap<DataViewMapKeyType, DataViewMapValueType>;
+
 
 pub struct Model {
     pub config: Arc<Config>,
-    pub data_view_map: DataViewMap
+    pub data_view_map: DataViewMap,
+    pub db: DataBase
 }
 
-
 impl Model {
-    pub fn new(config: Arc<Config>) -> Self {
-        Model {config, data_view_map: DataViewMap::new()}
+    pub fn new(config: Arc<Config>, db: DataBase) -> Self {
+        Model {config: config.clone(), data_view_map: DataViewMap::new(), db }
     }
 
-    pub fn on_notification(&self, updater: WindowUpdater, topic: String, payload: json::JsonValue) {
+    pub fn on_notification(&mut self, updater: WindowUpdater, topic: String, payload: json::JsonValue) {
         if self.data_view_map.contains_key(topic.as_str()) {
             // println!("json_payload = {:?}", payload);
             match self.data_view_map.get(topic.as_str()) {
@@ -41,18 +43,25 @@ impl Model {
     }
 
     // callbacks
-    pub fn indoor_t_rh_callback(&self, updater: WindowUpdater, json_data: JsonValue) {
+    pub fn indoor_t_rh_callback(&mut self, updater: WindowUpdater, json_data: JsonValue) {
         let t = json_data["temperature"].as_i32().unwrap_or(0);
         let rh = json_data["rh"].as_i32().unwrap_or(0);
 
+        self.db.indoor_t_history.insert(t);
+        self.db.indoor_rh_history.insert(rh);
+
         updater.update_indoor_t(t);
         updater.update_indoor_rh(rh);
+        updater.update_indoor_history_t(self.db.indoor_t_history.get_history());
+        updater.update_indoor_history_rh(self.db.indoor_rh_history.get_history());
     }
-    pub fn indoor_co2_callback(&self, updater: WindowUpdater, json_data: JsonValue) {
+    pub fn indoor_co2_callback(&mut self, updater: WindowUpdater, json_data: JsonValue) {
         let value = json_data["co2"].as_i32().unwrap_or(0);
+        self.db.indoor_co2_history.insert(value);
         updater.update_indoor_co2(value);
+        updater.update_indoor_history_co2(self.db.indoor_co2_history.get_history());
     }
-    pub fn space_weather_kp_callback(&self, updater: WindowUpdater, json_data: JsonValue) {
+    pub fn space_weather_kp_callback(&mut self, updater: WindowUpdater, json_data: JsonValue) {
         if !json_data.is_array() {
             println!("Format of received data is invalid! Should be array of elements");
             return;
@@ -73,7 +82,7 @@ impl Model {
 
         updater.update_kp_index_data(kp_data);
     }
-    pub fn space_weather_kp_inst_callback(&self, updater: WindowUpdater, json_data: JsonValue) {
+    pub fn space_weather_kp_inst_callback(&mut self, updater: WindowUpdater, json_data: JsonValue) {
         if !json_data.is_object() {
             println!("Format of received data is invalid! Shouldn't be object of type KpIndexUI");
             return;
@@ -86,7 +95,7 @@ impl Model {
 
         updater.update_kp_index_instant(kp_inst_val);
     }
-    pub fn space_weather_flux_callback(&self, updater: WindowUpdater, json_data: JsonValue) {
+    pub fn space_weather_flux_callback(&mut self, updater: WindowUpdater, json_data: JsonValue) {
         if !json_data.is_array() {
             println!("Format of received data is invalid! Should be array of elements");
             return;
@@ -95,7 +104,7 @@ impl Model {
         println!("current flux greater 10 Mev: {:#?}", current_flux);
         updater.update_solar_radiation_now(current_flux);
     }
-    pub fn space_weather_forecast_callback(&self, updater: WindowUpdater, json_data: JsonValue) {
+    pub fn space_weather_forecast_callback(&mut self, updater: WindowUpdater, json_data: JsonValue) {
         if !json_data.is_object() {
             println!("Format of received data is invalid! Should be object");
             return;

@@ -1,15 +1,16 @@
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 use envconfig::Envconfig;
 use slint::*;
 use ui::*;
 use model::Model;
 use connector::MQTTConnector;
-
+use database::DataBase;
 
 pub mod ui;
 pub mod model;
 pub mod connector;
 pub mod video;
+pub mod database;
 
 #[derive(Debug)]
 #[derive(Envconfig)]
@@ -44,6 +45,12 @@ pub struct Config {
 
     #[envconfig(from = "VIDEO_MAX_RATE", default = "10")]
     pub video_max_rate: u8,
+
+    #[envconfig(from = "HISTORY_N_ELEMENTS", default = "25")]
+    pub history_n_elements: usize,
+
+    #[envconfig(from = "HISTORY_INTERVAL_S", default = "3600")]
+    pub history_interval_s: u64
 }
 
 fn main() {
@@ -55,7 +62,8 @@ fn main() {
     let ui = AppWindow::new().unwrap();
     let window_updater = WindowUpdater::new(ui.as_weak());
 
-    let mut meteo_model = Model::new(config_ref.clone());
+    let db = DataBase::new(config_ref.clone());
+    let mut meteo_model = Model::new(config_ref.clone(), db);
 
     // data_view_map
     meteo_model.add_map(vec![
@@ -68,16 +76,18 @@ fn main() {
     ]);
 
     // Connector
-    let meteo_model_ref = Arc::new(meteo_model);
-    let meteo_model_ref2 = meteo_model_ref.clone();
+    let model_ref_lock = Arc::new(RwLock::new(meteo_model));
 
+    let model_ref_lock2 = model_ref_lock.clone();
     let on_notify_cb = move |topic, payload| {
-        meteo_model_ref2.on_notification(window_updater.clone(), topic, payload);
+        model_ref_lock2.write().expect("Couldn't get write access to model - still locked")
+            .on_notification(window_updater.clone(), topic, payload);
     };
     let mut mqtt_connector = MQTTConnector::new("display", config_ref.clone(), on_notify_cb).unwrap();
 
-    for topic in meteo_model_ref.data_view_map.keys() {
-        mqtt_connector.subscribe_client(topic);
+    for topic in model_ref_lock.read().expect("Couldn't get read access to model - still locked")
+        .data_view_map.keys() {
+            mqtt_connector.subscribe_client(topic);
     }
 
     // Video
