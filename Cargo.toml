@@ -1,6 +1,6 @@
 [package]
 name = "slint-gui"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["TEPO <tepotpoh@gmail.com>"]
 edition = "2021"
 build = "build.rs"
@@ -8,7 +8,7 @@ build = "build.rs"
 [dependencies]
 # set suitable backend and renderer from
 # https://releases.slint.dev/1.6.0/docs/slint/src/advanced/backends_and_renderers
-slint = { version = "<=1.7.2", default-features = false, features = ["std", "compat-1-2", @BACKEND_TYPE@, @RENDER_TYPE@] }
+slint = { version = "<=1.7.2", default-features = false, features = ["std", "compat-1-2", "backend-winit", "renderer-femtovg"] }
 rumqttc = "0.23.0"
 json = "0.12.4"
 envconfig = "0.10.0"
